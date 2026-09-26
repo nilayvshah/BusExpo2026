@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop &amp; Win Lucky Draw</title>
+<style>
+  :root{
+    --ink:#1c2a52;        /* deep indigo */
+    --ink-soft:#4a5578;
+    --marigold:#f2a900;   /* festive accent */
+    --paper:#fbfaf7;
+    --line:#dcd8cf;
+    --ok:#1f7a4d;
+    --err:#b3261e;
+    --warn:#9a5b00;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans","Noto Sans Gujarati",sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.45}
+  .wrap{max-width:460px;margin:0 auto;padding:0 18px 48px}
+
+  header{padding:26px 0 18px;border-bottom:3px solid var(--marigold);margin-bottom:22px}
+  header h1{font-size:26px;line-height:1.15;margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
+  header p{margin:0;color:var(--ink-soft);font-size:15px}
+
+  .field{margin-bottom:16px}
+  label{display:block;font-weight:650;font-size:15px;margin-bottom:6px}
+  .opt{font-weight:400;color:var(--ink-soft)}
+  input,select{width:100%;font:inherit;font-size:17px;padding:13px 12px;border:1.5px solid var(--line);
+    border-radius:10px;background:#fff;color:var(--ink);appearance:none;-webkit-appearance:none}
+  select{background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);
+    background-position:calc(100% - 20px) 55%,calc(100% - 14px) 55%;background-size:6px 6px;background-repeat:no-repeat;padding-right:36px}
+  input:focus,select:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(242,169,0,.35)}
+  .combo-box{position:relative}
+  .combo-list{position:absolute;left:0;right:0;top:100%;z-index:20;margin:4px 0 0;padding:4px;list-style:none;
+    background:#fff;border:1.5px solid var(--line);border-radius:10px;max-height:280px;overflow-y:auto;
+    box-shadow:0 10px 24px rgba(28,42,82,.14)}
+  .combo-list li{padding:12px 10px;border-radius:8px;cursor:pointer;font-size:16px}
+  .combo-list li b{display:inline-block;min-width:2.6em;margin-right:6px}
+  .combo-list li.active{background:#fff2cc}
+  .combo-list li.empty{color:var(--ink-soft);cursor:default;background:none}
+  .combo.selected #stallSearch{border-color:var(--ok);font-weight:600}
+  .msg{font-size:14px;margin-top:6px;min-height:0}
+  .msg.err{color:var(--err)} .msg.warn{color:var(--warn)}
+
+  .photo{border:1.5px dashed var(--line);border-radius:12px;padding:14px;background:#fff}
+  .cam{position:relative;border-radius:10px;overflow:hidden;background:#000;aspect-ratio:3/4;margin-bottom:12px}
+  .cam video,.cam img{width:100%;height:100%;object-fit:cover;display:block}
+  .frame{position:absolute;inset:8%;border:2px solid rgba(255,255,255,.75);border-radius:8px;pointer-events:none}
+  .note{font-size:14px;color:var(--ink-soft);margin:0 0 12px}
+
+  .btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;padding:0 16px;
+    font:inherit;font-size:17px;font-weight:700;border-radius:12px;border:0;cursor:pointer;text-decoration:none}
+  .btn:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
+  .primary{background:var(--ink);color:#fff}
+  .accent{background:var(--marigold);color:var(--ink)}
+  .ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .row{display:flex;gap:10px} .row .btn{flex:1}
+  .submit{margin-top:22px}
+  .alert{background:#fdecea;color:var(--err);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:15px}
+
+  /* Confirmation ticket – the one bold moment */
+  .ticket{position:relative;background:var(--ink);color:#fff;border-radius:16px;padding:26px 22px 22px;margin:8px 0 22px;overflow:hidden}
+  .ticket:before,.ticket:after{content:"";position:absolute;top:62%;width:26px;height:26px;border-radius:50%;background:var(--paper)}
+  .ticket:before{left:-13px} .ticket:after{right:-13px}
+  .ticket .t-top{padding-bottom:18px;border-bottom:2px dashed rgba(255,255,255,.35);margin-bottom:16px}
+  .ticket h2{margin:0 0 4px;font-size:20px}
+  .ticket .id{font-size:40px;font-weight:800;letter-spacing:.02em;color:var(--marigold);font-variant-numeric:tabular-nums;margin-top:6px}
+  .ticket dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px}
+  .ticket dt{opacity:.7} .ticket dd{margin:0;font-weight:600;word-break:break-word}
+  .after{color:var(--ink-soft);font-size:15px;margin:0 0 16px}
+
+  [hidden]{display:none!important}
+  @media (prefers-reduced-motion:no-preference){
+    .ticket{animation:stamp .35s ease-out}
+    @keyframes stamp{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="eventName">Shop &amp; Win Lucky Draw</h1>
+    <p>Register each bill from today's expo for the lucky draw. Every different bill is one entry.</p>
+  </header>
+
+  <!-- ENTRY FORM -->
+  <main id="formView">
+    <div class="field combo" id="stallCombo">
+      <label for="stallSearch">Stall you bought from</label>
+      <div class="combo-box">
+        <input id="stallSearch" type="text" placeholder="Type stall number or name" autocomplete="off"
+               role="combobox" aria-expanded="false" aria-controls="stallList" aria-autocomplete="list">
+        <ul id="stallList" class="combo-list" role="listbox" hidden></ul>
+      </div>
+      <input id="stall" type="hidden">
+      <div id="stallMsg" class="msg"></div>
+    </div>
+
+    <div class="field">
+      <label for="invoice">Bill / invoice number</label>
+      <input id="invoice" type="text" autocomplete="off" autocapitalize="characters" placeholder="As printed or written on the bill">
+      <div id="invoiceMsg" class="msg"></div>
+    </div>
+
+    <div class="field" id="amountField">
+      <label for="amount">Bill amount (₹) <span class="opt" id="amountOpt">optional</span></label>
+      <input id="amount" type="number" inputmode="decimal" min="1" step="0.01" placeholder="0">
+    </div>
+
+    <div class="field">
+      <label for="name">Your name</label>
+      <input id="name" type="text" autocomplete="name">
+    </div>
+
+    <div class="field">
+      <label for="mobile">Mobile number</label>
+      <input id="mobile" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10 digits">
+    </div>
+
+    <div class="field">
+      <label>Photo of the bill</label>
+      <div class="photo">
+        <div id="camStart">
+          <p class="note">Keep the bill flat, with the stall name and bill number clearly visible.</p>
+          <button type="button" class="btn accent" id="openCamBtn">Open camera</button>
+        </div>
+
+        <div id="camLive" hidden>
+          <div class="cam"><video id="video" playsinline muted autoplay></video><div class="frame"></div></div>
+          <div class="row">
+            <button type="button" class="btn ghost" id="cancelCamBtn">Cancel</button>
+            <button type="button" class="btn accent" id="captureBtn">Take photo</button>
+          </div>
+        </div>
+
+        <div id="camFallback" hidden>
+          <p class="note">Tap below to open your phone's camera and photograph the bill.</p>
+          <label class="btn accent" for="fileInput" style="margin:0">Take photo</label>
+          <input id="fileInput" type="file" accept="image/*" capture="environment" hidden>
+        </div>
+
+        <div id="camPreview" hidden>
+          <div class="cam"><img id="previewImg" alt="Captured bill"></div>
+          <button type="button" class="btn ghost" id="retakeBtn">Retake photo</button>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="btn primary submit" id="submitBtn">Submit entry</button>
+    <div id="formError" class="alert" hidden></div>
+  </main>
+
+  <!-- CONFIRMATION -->
+  <section id="doneView" hidden>
+    <div class="ticket" role="status">
+      <div class="t-top">
+        <h2>You're in the draw</h2>
+        <div>Your entry number</div>
+        <div class="id" id="doneId"></div>
+      </div>
+      <dl>
+        <dt>Stall</dt><dd id="doneStall"></dd>
+        <dt>Bill no.</dt><dd id="doneInvoice"></dd>
+        <dt>Name</dt><dd id="doneName"></dd>
+      </dl>
+    </div>
+    <p class="after">Keep your original bill. Winners must show it to collect the prize. Bought from another stall? Register that bill too.</p>
+    <button type="button" class="btn primary" id="anotherBtn">Register another bill</button>
+  </section>
+</div>
+
+<script>
+  // ===== SETTINGS: your Apps Script web app URL (ends in /exec) =====
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxAcSr1BfbTrnCOusTtgtGkN9KaURtDASFQq4wVjQ9XhcIGkFYMWwQXSsCQ88hSGl7l/exec';
+  // ====================================================================
+
+  let STALLS = [];
+  let CFG = { amountField: 'optional', minAmount: 0 };
+
+  // Plain-text POST avoids a CORS preflight, which Apps Script can't answer.
+  async function apiPost(data) {
+    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(data), redirect: 'follow' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+  const $ = id => document.getElementById(id);
+  let photoData = null;
+  let stream = null;
+
+  // ---------- searchable stall field ----------
+  const search = $('stallSearch'), list = $('stallList'), stallVal = $('stall'), combo = $('stallCombo');
+  let matches = [], activeIdx = -1;
+
+  function stallLabel(s) { return 'Stall ' + s.no + ': ' + s.name; }
+
+  function closeList() { list.hidden = true; search.setAttribute('aria-expanded', 'false'); }
+
+  function highlight() {
+    [...list.querySelectorAll('li[role=option]')].forEach((li, i) => {
+      li.classList.toggle('active', i === activeIdx);
+      if (i === activeIdx) li.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  function renderList(q) {
+    q = (q || '').trim().toLowerCase();
+    matches = STALLS.filter(s => !q || s.no.toLowerCase().includes(q) || s.name.toLowerCase().includes(q));
+    // exact stall-number match goes to the top
+    matches.sort((a, b) => (b.no.toLowerCase() === q) - (a.no.toLowerCase() === q));
+    list.innerHTML = '';
+    if (!matches.length) {
+      const li = document.createElement('li');
+      li.className = 'empty';
+      li.textContent = STALLS.length ? 'No stall matches "' + q + '". Check the stall board.' : 'No stalls have been added yet.';
+      list.appendChild(li);
+    }
+    matches.forEach((s, i) => {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'option');
+      const b = document.createElement('b'); b.textContent = s.no;
+      li.appendChild(b); li.appendChild(document.createTextNode(s.name));
+      li.addEventListener('mousedown', e => { e.preventDefault(); choose(s); });
+      li.addEventListener('touchstart', () => { activeIdx = i; highlight(); }, { passive: true });
+      list.appendChild(li);
+    });
+    activeIdx = matches.length ? 0 : -1;
+    highlight();
+    list.hidden = false;
+    search.setAttribute('aria-expanded', 'true');
+  }
+
+  function choose(s) {
+    stallVal.value = s.no;
+    search.value = stallLabel(s);
+    combo.classList.add('selected');
+    setMsg('stallMsg', '');
+    closeList();
+    precheck();
+  }
+
+  function clearChoice() { stallVal.value = ''; combo.classList.remove('selected'); }
+
+  search.addEventListener('focus', () => {
+    if (stallVal.value) { search.select(); renderList(''); } else { renderList(search.value); }
+  });
+  search.addEventListener('input', () => { clearChoice(); renderList(search.value); });
+  search.addEventListener('keydown', e => {
+    if (list.hidden) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, matches.length - 1); highlight(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); highlight(); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (matches[activeIdx]) choose(matches[activeIdx]); }
+    else if (e.key === 'Escape') { closeList(); }
+  });
+  search.addEventListener('blur', () => {
+    setTimeout(() => {
+      closeList();
+      if (!stallVal.value && search.value.trim()) {
+        // typed an exact stall number or name without tapping: accept it
+        const q = search.value.trim().toLowerCase();
+        const exact = STALLS.find(s => s.no.toLowerCase() === q || s.name.toLowerCase() === q);
+        if (exact) choose(exact);
+        else setMsg('stallMsg', 'Tap a stall from the list.', 'err');
+      }
+    }, 120);
+  });
+
+
+  // ---------- duplicate pre-check ----------
+  function setMsg(id, text, kind) { const el = $(id); el.textContent = text || ''; el.className = 'msg ' + (kind || ''); }
+  function precheck() {
+    const s = $('stall').value, inv = $('invoice').value.trim();
+    setMsg('invoiceMsg', '');
+    if (!s || !inv) return;
+    apiPost({ action: 'check', stallNo: s, invoiceNo: inv }).then(r => {
+      if (r && r.duplicate) setMsg('invoiceMsg', 'This bill number is already registered for this stall.', 'err');
+    }).catch(() => {});
+  }
+  $('invoice').addEventListener('blur', precheck);
+  $('mobile').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); });
+
+  // ---------- camera ----------
+  function showPane(which) {
+    ['camStart', 'camLive', 'camFallback', 'camPreview'].forEach(id => $(id).hidden = (id !== which));
+  }
+  function stopCamera() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
+
+  // Hosted outside Apps Script, the live camera works in all modern browsers.
+  const NATIVE_CAMERA_ONLY = false;
+  let liveCameraFailed = false;
+
+  async function openCamera() {
+    if (NATIVE_CAMERA_ONLY || liveCameraFailed ||
+        !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      $('fileInput').click();   // still inside the tap, so the browser allows it
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      });
+      const v = $('video');
+      v.srcObject = stream;
+      showPane('camLive');
+      await v.play();
+    } catch (err) {
+      console.warn('Camera stream unavailable:', err);
+      stopCamera();
+      liveCameraFailed = true;   // next tap on Open camera / Retake uses the phone camera directly
+      showPane('camFallback');
+    }
+  }
+
+  function toJpeg(src, w, h) {
+    const MAX = 1600, s = Math.min(1, MAX / Math.max(w, h));
+    const c = document.createElement('canvas');
+    c.width = Math.round(w * s); c.height = Math.round(h * s);
+    c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.75);
+  }
+
+  function setPhoto(data) {
+    photoData = data;
+    $('previewImg').src = data;
+    showPane('camPreview');
+  }
+
+  $('openCamBtn').addEventListener('click', openCamera);
+  $('cancelCamBtn').addEventListener('click', () => { stopCamera(); showPane('camStart'); });
+  $('captureBtn').addEventListener('click', () => {
+    const v = $('video');
+    if (!v.videoWidth) return;
+    const data = toJpeg(v, v.videoWidth, v.videoHeight);
+    stopCamera();
+    setPhoto(data);
+  });
+  $('retakeBtn').addEventListener('click', () => { photoData = null; openCamera(); });
+
+  $('fileInput').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f || !f.type.startsWith('image/')) return;
+    const url = URL.createObjectURL(f), img = new Image();
+    img.onload = () => { setPhoto(toJpeg(img, img.naturalWidth, img.naturalHeight)); URL.revokeObjectURL(url); };
+    img.src = url;
+  });
+
+  // ---------- submit ----------
+  function showError(text) { const el = $('formError'); el.textContent = text; el.hidden = false; }
+
+  function validate() {
+    if (!$('stall').value) return 'Select the stall you bought from.';
+    if (!$('invoice').value.trim()) return 'Enter the bill / invoice number.';
+    const amt = $('amount').value;
+    if (CFG.amountField === 'required' && !amt) return 'Enter the bill amount.';
+    if (amt && CFG.minAmount > 0 && Number(amt) < CFG.minAmount) return 'Bills below ₹' + CFG.minAmount + ' do not qualify for the draw.';
+    if ($('name').value.trim().length < 2) return 'Enter your name.';
+    if (!/^[6-9]\d{9}$/.test($('mobile').value)) return 'Enter a valid 10-digit mobile number.';
+    if (!photoData) return 'Take a photo of the bill.';
+    return '';
+  }
+
+  $('submitBtn').addEventListener('click', () => {
+    $('formError').hidden = true;
+    const problem = validate();
+    if (problem) { showError(problem); return; }
+
+    const btn = $('submitBtn');
+    btn.disabled = true; btn.textContent = 'Submitting entry…';
+    const payload = {
+      stallNo: $('stall').value,
+      invoiceNo: $('invoice').value.trim(),
+      amount: CFG.amountField === 'hidden' ? '' : $('amount').value,
+      name: $('name').value.trim(),
+      mobile: $('mobile').value,
+      image: photoData
+    };
+
+    apiPost({ action: 'submit', entry: payload })
+      .then(res => {
+        btn.disabled = false; btn.textContent = 'Submit entry';
+        if (!res || !res.ok) { showError((res && res.message) || 'Your entry could not be saved. Tap Submit again.'); return; }
+        $('doneId').textContent = res.entryId;
+        $('doneStall').textContent = payload.stallNo + '  ' + res.stallName;
+        $('doneInvoice').textContent = res.invoiceNo;
+        $('doneName').textContent = payload.name;
+        $('formView').hidden = true; $('doneView').hidden = false;
+        window.scrollTo(0, 0);
+      })
+      .catch(() => {
+        btn.disabled = false; btn.textContent = 'Submit entry';
+        showError('No connection to the server. Check your internet and tap Submit again.');
+      });
+  });
+
+  // ---------- next bill: keep name + mobile ----------
+  $('anotherBtn').addEventListener('click', () => {
+    clearChoice(); search.value = ''; setMsg('stallMsg', '');
+    $('invoice').value = ''; $('amount').value = '';
+    setMsg('invoiceMsg', ''); photoData = null; showPane('camStart');
+    $('formError').hidden = true;
+    $('doneView').hidden = true; $('formView').hidden = false;
+    window.scrollTo(0, 0);
+  });
+  // ---------- load stalls and settings from the Sheet ----------
+  async function loadStalls(attempt) {
+    attempt = attempt || 1;
+    search.disabled = true;
+    search.placeholder = 'Loading stalls…';
+    try {
+      const res = await fetch(API_URL + '?action=stalls', { redirect: 'follow' });
+      const data = await res.json();
+      if (!data.ok) throw new Error('bad response');
+      STALLS = data.stalls || [];
+      CFG = Object.assign(CFG, data.config || {});
+      if (data.eventName) $('eventName').textContent = data.eventName;
+      $('amountField').hidden = CFG.amountField === 'hidden';
+      $('amountOpt').hidden = CFG.amountField === 'required';
+      search.disabled = false;
+      search.placeholder = 'Type stall number or name';
+      setMsg('stallMsg', '');
+    } catch (err) {
+      console.warn('Stall list failed:', err);
+      if (attempt < 3) { setTimeout(() => loadStalls(attempt + 1), 1500 * attempt); return; }
+      search.placeholder = 'Could not load stalls';
+      setMsg('stallMsg', 'Could not load the stall list. Check your internet and reload the page.', 'err');
+    }
+  }
+  loadStalls();
+</script>
+</body>
+</html>
